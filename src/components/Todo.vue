@@ -1,49 +1,71 @@
 <template>
-  <div>
     <div>
-      <h1>Berikut adalah daftar tugas kita</h1>
+        <div>
+            <h1>Berikut adalah daftar tugas kita</h1>
+        </div>
+        <ul>
+            <li v-for="item in todos" :key="item.id">
+                {{ item.deskripsi }} <button @click="hapus(item.id)">X</button>
+            </li>
+        </ul>
+        <input v-model="myText" />
+        <button @click="tambah">Add</button>
     </div>
-    <ul>
-      <li v-for="item in todos" :key="item.id">{{item.deskripsi}} <button @click="hapus(item.id)"> X </button></li>
-    </ul>
-    <input v-model="myText" />
-    <button @click="tambah">Add</button>
-  </div>
 </template>
 
 <script>
-import axios from 'axios'
+import axios from 'axios';
 export default {
-  created: function() {
-    axios.get('http://localhost:3080/todo')
-    .then((result)=>{
-      this.todos = result.data
-    })
-  },
-  data : function() {
-    return {
-      todos : [],
-      myText : '',
-      lastId : null
-    }
-  },
-  methods : {
-    tambah: function () { 
-      let newItem = {deskripsi: this.myText} 
-      axios.post('http://localhost:3080/todo', newItem)
-      .then(() => {
-        this.todos.push(newItem)
-        // location.reload()
-      })
+    data: function () {
+        return {
+            todos: [],
+            myText: '',
+            loUsername: localStorage.getItem('usr'),
+            loPassword: localStorage.getItem('pwd'),
+        };
     },
-    hapus: function (id) {
-      // alert(id)
-      axios.delete(`http://localhost:3080/todo/${id}`)
-      .then(()=>{
-        var filtered = this.todos.filter((item) => item.id != id)
-        this.todos = filtered
-      })
-    }
-  }
-}
+    created: function () {
+        axios
+            .get('http://localhost:3080/todo', {
+                headers: {
+                    username: this.loUsername,
+                    password: this.loPassword,
+                },
+            })
+            .then((result) => {
+                this.todos = result.data;
+            });
+    },
+    methods: {
+        tambah: function () {
+            let newItem = { deskripsi: this.myText };
+            axios
+                .post('http://localhost:3080/todo', newItem, {
+                    headers: {
+                        username: this.loUsername,
+                        password: this.loPassword,
+                    },
+                })
+                .then((response) => {
+                    this.todos.push({
+                        id: response.data.id,
+                        deskripsi: this.myText,
+                    });
+                });
+        },
+        hapus: function (id) {
+            axios
+                .delete(`http://localhost:3080/todo/${id}`, {
+                    headers: {
+                        username: this.loUsername,
+                        password: this.loPassword,
+                    },
+                })
+                .then(() => {
+                    var filtered = this.todos.filter((item) => item.id != id);
+                    this.todos = filtered;
+                });
+        },
+    },
+};
 </script>

@@ -24,20 +24,34 @@ export default {
             users: [],
             username: '',
             password: '',
+            loUsername: localStorage.getItem('usr'),
+            loPassword: localStorage.getItem('pwd'),
         };
     },
     created: function () {
         // let username = localStorage.getItem('usr')
         // let password = localStorage.getItem('pwd')
-        axios.get('http://localhost:3080/user').then((result) => {
-            this.users = result.data;
-        });
+        axios
+            .get('http://localhost:3080/user', {
+                headers: {
+                    username: this.loUsername,
+                    password: this.loPassword,
+                },
+            })
+            .then((result) => {
+                this.users = result.data;
+            });
     },
     methods: {
         tambah: function () {
             let newUser = { username: this.username, password: this.password };
             axios
-                .post('http://localhost:3080/user', newUser)
+                .post('http://localhost:3080/user', newUser, {
+                    headers: {
+                        username: this.loUsername,
+                        password: this.loPassword,
+                    },
+                })
                 .then((response) => {
                     this.users.push({
                         id: response.data.id,
@@ -47,10 +61,17 @@ export default {
                 });
         },
         hapus: function (id) {
-            axios.delete(`http://localhost:3080/user/${id}`).then(() => {
-                var filtered = this.users.filter((item) => item.id != id);
-                this.users = filtered;
-            });
+            axios
+                .delete(`http://localhost:3080/user/${id}`, {
+                    headers: {
+                        username: this.loUsername,
+                        password: this.loPassword,
+                    },
+                })
+                .then(() => {
+                    var filtered = this.users.filter((item) => item.id != id);
+                    this.users = filtered;
+                });
         },
     },
 };
