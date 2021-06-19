@@ -23,7 +23,9 @@ export default {
             myText: '',
             loUsername: localStorage.getItem('usr'),
             loPassword: localStorage.getItem('pwd'),
-            socket: io('http://localhost:3080'),
+            socket: io('http://localhost:3080', {
+                transportOptions: ['websocket', 'polling'],
+            }),
         };
     },
     created: function () {
@@ -37,36 +39,26 @@ export default {
             .then((result) => {
                 this.todos = result.data;
             });
+        this.socket.on('todo-add', (data) => {
+            this.todos.push({
+                id: data.data.insertedID,
+                deskripsi: data.data.deskripsi,
+            });
+        });
+        this.socket.on('todo-remove', (data) => {
+            var filtered = this.todos.filter(
+                (item) => item.id != data.data.deletedID
+            );
+            this.todos = filtered;
+        });
     },
     methods: {
         tambah: function () {
             let newItem = { deskripsi: this.myText };
-            axios
-                .post('http://localhost:3080/todo', newItem, {
-                    headers: {
-                        username: this.loUsername,
-                        password: this.loPassword,
-                    },
-                })
-                .then((response) => {
-                    this.todos.push({
-                        id: response.data.id,
-                        deskripsi: this.myText,
-                    });
-                });
+            this.socket.emit('todo-add', newItem);
         },
         hapus: function (id) {
-            axios
-                .delete(`http://localhost:3080/todo/${id}`, {
-                    headers: {
-                        username: this.loUsername,
-                        password: this.loPassword,
-                    },
-                })
-                .then(() => {
-                    var filtered = this.todos.filter((item) => item.id != id);
-                    this.todos = filtered;
-                });
+            this.socket.emit('todo-remove', id);
         },
     },
 };
