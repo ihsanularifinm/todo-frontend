@@ -15,6 +15,7 @@
 
 <script>
 import axios from 'axios';
+import io from 'socket.io-client';
 export default {
     data: function () {
         return {
@@ -22,6 +23,7 @@ export default {
             myText: '',
             loUsername: localStorage.getItem('usr'),
             loPassword: localStorage.getItem('pwd'),
+            socket: io('http://localhost:3080'),
         };
     },
     created: function () {
